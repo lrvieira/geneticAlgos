@@ -3,27 +3,24 @@
 #include <stdlib.h>
 #include <vector>
 #include <cmath>
+#include "tsp.h"
 
-class TSP{
-
-public:
-    void setPopulationSize(int popSize)
+    void TSP::setPopulationSize(int popSize)
     {
-        m_populationSize = popSize;
+        TSP::m_populationSize = popSize;
     }
 
-    void setGeneSize(int genSize)
+    void TSP::setGeneSize(int genSize)
     {
-        m_geneSize = genSize;
+        TSP::m_geneSize = genSize;
     }
 
-
-    void setMutationProbability(double mutProb)
+    void TSP::setMutationProbability(double mutProb)
     {
-        m_mutationProbability = mutProb;
+        TSP::m_mutationProbability = mutProb;
     }
 
-    void showIndividual(std::vector<int> &indiv)
+    void TSP::showIndividual(std::vector<int> &indiv)
     {
         for (int i = 0; i < indiv.size(); i++)
         {
@@ -33,24 +30,15 @@ public:
         //std::cout << std::endl;
     }
 
-private:
-    int     m_geneSize;
-    int     m_populationSize;
-    double  m_mutationProbability;
-
-    std::vector<std::vector<int>>   population;
-    std::vector<int>                individual;
-
-public:
-    std::vector<std::vector<int>> initializePopulation()
+    std::vector<std::vector<int>> TSP::initializePopulation()
     {
 
-        for (int i = 0; i < m_populationSize; i++)
+        for (int i = 0; i < TSP::m_populationSize; i++)
         {
-            individual.clear();
-            individual.push_back(rand() % m_geneSize);
+            TSP::individual.clear();
+            TSP::individual.push_back(rand() % TSP::m_geneSize);
 
-            for (int j = 0; j < m_geneSize - 1; j++)
+            for (int j = 0; j < TSP::m_geneSize - 1; j++)
             {
                 int city;
 
@@ -61,32 +49,32 @@ public:
                 //std::cout << "saiu" << std::endl;
 
 
-                individual.push_back(city);
+                TSP::individual.push_back(city);
             }
 
-            population.push_back(individual);
+            TSP::population.push_back(individual);
         }
 
-        return population;
+        return TSP::population;
     }
 
-    void showPopulation()
+    void TSP::showPopulation()
     {
         std::cout << "\n" << "----------------------------\n";
         std::cout << "Initial population: " << "\n\n";
 
-        for (int i = 0; i < m_populationSize; i++)
+        for (int i = 0; i < TSP::m_populationSize; i++)
         {
-            for (int j = 0; j < m_geneSize; j++)
+            for (int j = 0; j < TSP::m_geneSize; j++)
             {
-                std::cout << population[i][j] << " ";
+                std::cout << TSP::population[i][j] << " ";
             }
             std::cout << std::endl;
         }
         std::cout << "\n" << "----------------------------\n";
     }
 
-    double scoreOfIndividual(std::vector<int> &indiv,  std::vector<std::vector<double>> &citiesPosition)
+    double TSP::scoreOfIndividual(std::vector<int> &indiv,  std::vector<std::vector<double>> &citiesPosition)
     {
         double distance = 0.;
         double x1, y1, x2, y2;
@@ -111,7 +99,7 @@ public:
         return distance;
     }
 
-    void crossoverTournment(std::vector<std::vector<int>> &population, int fatherIndex, int motherIndex, std::vector<int> &child1, std::vector<int> &child2)
+    void TSP::crossoverTournment(std::vector<std::vector<int>> &population, int fatherIndex, int motherIndex, std::vector<int> &child1, std::vector<int> &child2)
     {
         int crossoverPoint = std::rand() % m_geneSize;
         std::vector<int> auxChild1, auxChild2;
@@ -147,7 +135,7 @@ public:
         child2.insert(child2.end(), auxChild2.begin(), auxChild2.end());
     }
 
-    void mutation(std::vector<int> &indiv)
+    void TSP::mutation(std::vector<int> &indiv)
     {
         int gene1 = rand() % m_geneSize;
         int gene2;
@@ -167,7 +155,7 @@ public:
         indiv[gene2] = auxGene;
     }
 
-    int getFittest(std::vector<std::vector<int>> &population, std::vector<std::vector<double>> &citiesPosition)
+    int TSP::getFittest(std::vector<std::vector<int>> &population, std::vector<std::vector<double>> &citiesPosition)
     {
         int indexOfBest = 0;
         int scoreOfBest = scoreOfIndividual(population[indexOfBest], citiesPosition);
@@ -185,95 +173,3 @@ public:
         return indexOfBest;
     }
 
-};
-
-int main(){
-
-    srand(time(NULL));                              //Allow random numbers
-
-    std::vector<std::vector<double>> cities = 
-    {
-        {  8.660 ,  5.000},
-        {  5.000 ,  8.660},
-        {  0.000 , 10.000},
-        { -5.000 ,  8.660},
-        { -8.660 ,  5.000},
-        {-10.000 ,  0.000},
-        { -8.660 , -5.000},
-        { -5.000 , -8.660},
-        {  0.000 ,-10.000},
-        {  5.000 , -8.660},
-        {  8.660 , -5.000},
-        { 10.000 ,  0.000}
-    };
-
-    double aim = 63;
-
-    int     numberOfGenerations = 200;
-    int     numberOfTournments = 400;
-    int     populationSize = 1000;
-    int     geneSize = cities.size();
-    double  crossoverProbability = 0.7;
-    double  mutationProbability = 0.1;
-
-    TSP trip;
-    trip.setPopulationSize(populationSize);
-    trip.setGeneSize(geneSize);
-    trip.setMutationProbability(mutationProbability);
-
-    std::vector<std::vector<int>> routes;
-    routes = trip.initializePopulation();
-
-   for (int i = 0; i < numberOfGenerations; i++)
-   {
-       for (int j = 0; j < numberOfTournments; j++)
-       {
-           double probability = ((double) std::rand()/ ((double)RAND_MAX + 1));
-
-            if (probability > crossoverProbability)
-            {
-                int fatherIndex = std::rand() % populationSize;
-                int motherIndex;
-
-                do
-                {
-                    motherIndex = std::rand() % populationSize;
-                } while (fatherIndex == motherIndex);
-                
-                std::vector<int> firstChild, secondChild;
-
-                trip.crossoverTournment(routes, fatherIndex, motherIndex, firstChild, secondChild);
-
-                double scoreFather =       trip.scoreOfIndividual(routes[fatherIndex], cities);
-                double scoreMother =       trip.scoreOfIndividual(routes[motherIndex], cities);
-                double scoreFirstChild =   trip.scoreOfIndividual(firstChild, cities);
-                double scoreSecondChild =  trip.scoreOfIndividual(secondChild, cities);
-
-                std::vector<int> fit1, fit2, nonFit1, nonFit2;
-                
-                if (scoreFirstChild + scoreSecondChild < scoreFather + scoreMother)
-                {
-                    for (int k = 0; k < geneSize; k++)
-                    {
-                        routes[fatherIndex][k] = firstChild[k];
-                        routes[motherIndex][k] = secondChild[k];
-                    }
-                }
-            }
-       } 
-
-        std::cout << "Generation: " << i+1;
-        std::cout << " | Best: ";
-
-        int indexOfBest = trip.getFittest(routes, cities);
-        double scoreOfBest = trip.scoreOfIndividual(routes[indexOfBest], cities);
-        trip.showIndividual(routes[indexOfBest]);
-
-        std::cout << " | Score: " << scoreOfBest << "\n\n";
-
-        if (scoreOfBest <= aim)
-        {
-            break;
-        }
-   }
-}

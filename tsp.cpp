@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <iostream>
 #include <stdlib.h>
+#include <fstream>
+#include <string>
 #include <vector>
 #include <cmath>
 #include "tsp.h"
@@ -20,14 +22,15 @@
         TSP::m_mutationProbability = mutProb;
     }
 
-    void TSP::showIndividual(std::vector<int> &indiv)
+    std::string TSP::showIndividual(std::vector<int> &indiv)
     {
+        std::string individualToShow;
         for (int i = 0; i < indiv.size(); i++)
         {
-            std::cout << indiv.at(i) << " ";
+            //std::cout << indiv.at(i) << " ";
+            individualToShow += std::to_string(indiv.at(i)) + " ";
         }
-
-        //std::cout << std::endl;
+        return individualToShow;
     }
 
     std::vector<std::vector<int>> TSP::initializePopulation()
@@ -52,10 +55,10 @@
                 TSP::individual.push_back(city);
             }
 
-            TSP::population.push_back(individual);
+            TSP::m_population.push_back(individual);
         }
 
-        return TSP::population;
+        return TSP::m_population;
     }
 
     void TSP::showPopulation()
@@ -67,7 +70,7 @@
         {
             for (int j = 0; j < TSP::m_geneSize; j++)
             {
-                std::cout << TSP::population[i][j] << " ";
+                std::cout << TSP::m_population[i][j] << " ";
             }
             std::cout << std::endl;
         }
@@ -99,7 +102,7 @@
         return distance;
     }
 
-    void TSP::crossoverTournment(std::vector<std::vector<int>> &population, int fatherIndex, int motherIndex, std::vector<int> &child1, std::vector<int> &child2)
+    void TSP::crossover(std::vector<std::vector<int>> &population, int fatherIndex, int motherIndex, std::vector<int> &child1, std::vector<int> &child2)
     {
         int crossoverPoint = std::rand() % m_geneSize;
         std::vector<int> auxChild1, auxChild2;
@@ -173,3 +176,34 @@
         return indexOfBest;
     }
 
+    std::vector<std::vector<double>> TSP::readPoints(std::string fileName)
+    {
+        std::vector<std::vector<double>> points;
+        std::fstream myFile(fileName);
+
+        if (myFile.is_open())
+        {
+            double x, y;
+            char comma;
+
+            while (myFile >> x >> comma >> y    &&  comma == ',')
+            {
+                points.push_back({x, y});
+            }
+            
+            myFile.close();
+        }
+        
+        return points;
+    }
+
+    double TSP::averageScore(std::vector<std::vector<int>> &population, std::vector<std::vector<double>> &citiesPosition)
+    {
+        double score=0;
+
+        for (int i = 0; i < m_populationSize; i++)
+        {
+            score += scoreOfIndividual(population[i], citiesPosition);
+        }
+        return score/(double)m_populationSize;
+    }

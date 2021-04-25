@@ -1,41 +1,31 @@
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <vector>
 #include <cmath>
+#include <chrono>
 #include "tsp.h"
 
+int main(int argc, char *argv[]){
 
-int main(){
+    auto start = std::chrono::steady_clock::now();
 
     srand(time(NULL));                              //Allow random numbers
 
-    std::vector<std::vector<double>> cities = 
-    {
-        {  8.660 ,  5.000},
-        {  5.000 ,  8.660},
-        {  0.000 , 10.000},
-        { -5.000 ,  8.660},
-        { -8.660 ,  5.000},
-        {-10.000 ,  0.000},
-        { -8.660 , -5.000},
-        { -5.000 , -8.660},
-        {  0.000 ,-10.000},
-        {  5.000 , -8.660},
-        {  8.660 , -5.000},
-        { 10.000 ,  0.000}
-    };
-
-    double aim = 63;
-
-    int     numberOfGenerations = 150;
-    int     numberOfTournments = 400;
-    int     populationSize = 1000;
-    int     geneSize = cities.size();
-    double  crossoverProbability = 0.7;
-    double  mutationProbability = 0.1;
-
     TSP trip;
+    //double aim = 63;    
+
+    std::vector<std::vector<double>> cities = trip.readPoints(argv[1]);
+
+    int     numberOfGenerations =       std::atoi(argv[2]);     //150
+    int     populationSize =            std::atoi(argv[3]);     //100
+    int     numberOfTournments =        std::atoi(argv[4]);     //400
+    double  crossoverProbability =      std::atof(argv[5]);     //0.5
+    double  mutationProbability =       std::atof(argv[6]);     //0.1
+    int     geneSize =                  cities.size();
+    float   aim =                       std::atof(argv[7]);     //63
+
     trip.setPopulationSize(populationSize);
     trip.setGeneSize(geneSize);
     trip.setMutationProbability(mutationProbability);
@@ -43,7 +33,19 @@ int main(){
     std::vector<std::vector<int>> routes;
     routes = trip.initializePopulation();
 
-   for (int i = 0; i < numberOfGenerations; i++)
+    std::ofstream outFile;
+    std::string outFileName = argv[1];
+    outFileName = outFileName.substr(0, outFileName.size() - 4) + ".out.csv";
+    outFile.open(outFileName);
+
+    outFile << "Generation, Best, Score, Average\n";
+
+    int i;
+    double      scoreOfBest;
+    double      averageScore;
+    std::string bestIndividual;
+
+   for (i = 0; i < numberOfGenerations; i++)
    {
        for (int j = 0; j < numberOfTournments; j++)
        {
@@ -61,7 +63,7 @@ int main(){
                 
                 std::vector<int> firstChild, secondChild;
 
-                trip.crossoverTournment(routes, fatherIndex, motherIndex, firstChild, secondChild);
+                trip.crossover(routes, fatherIndex, motherIndex, firstChild, secondChild);
 
                 double scoreFather =       trip.scoreOfIndividual(routes[fatherIndex], cities);
                 double scoreMother =       trip.scoreOfIndividual(routes[motherIndex], cities);
@@ -79,20 +81,27 @@ int main(){
                     }
                 }
             }
-       } 
-
-        std::cout << "Generation: " << i+1;
-        std::cout << " | Best: ";
+       }
 
         int indexOfBest = trip.getFittest(routes, cities);
-        double scoreOfBest = trip.scoreOfIndividual(routes[indexOfBest], cities);
-        trip.showIndividual(routes[indexOfBest]);
 
-        std::cout << " | Score: " << scoreOfBest << "\n\n";
+        scoreOfBest = trip.scoreOfIndividual(routes[indexOfBest], cities);
+        averageScore = trip.averageScore(routes, cities);
+        bestIndividual = trip.showIndividual(routes[indexOfBest]);
+
+        outFile << i+1 << ", " << bestIndividual << ", " << scoreOfBest << ", " << averageScore << "\n";
 
         if (scoreOfBest <= aim)
         {
             break;
         }
    }
+
+    auto end = std::chrono::steady_clock::now();
+    auto diff = end - start;
+
+    std::cout << "\nEnd of program. Execution time: " << std::chrono::duration <double, std::milli> (diff).count() << " ms. Solution below\n\n";
+    std::cout << "Gen: " << i << " | Best: " << bestIndividual << " | Score: " << scoreOfBest << " | Average: " << averageScore << "\n\n";
+
+    outFile.close();
 }
